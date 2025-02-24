@@ -8,7 +8,9 @@ use tokio::sync::Mutex;
 
 lazy_static::lazy_static! {
     static ref CHAIN: Arc<Mutex<dyn Chain>> = {
-        let ollama = Ollama::default().with_model("mistral-nemo");
+        // let model_name = "mistral-nemo";
+        let model_name = "llama3.2";
+        let ollama = Ollama::default().with_model(model_name);
         let prompt = message_formatter![
             fmt_message!(Message::new_system_message(
                 "根据{sentence}的内容，翻译成英语、法语、俄语、日语。翻译过程要考虑文学修辞和意境表达，做到信达雅。
