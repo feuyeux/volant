@@ -13,8 +13,8 @@
     "windows": [
       {
         "title": "Volant",
-        "width": 1024,
-        "height": 512,
+        "width": 800,
+        "height": 800,
         "resizable": false
       }
     ],

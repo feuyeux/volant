@@ -1,27 +1,30 @@
+use env_logger::Builder;
 use langchain_rust::chain::{Chain, LLMChainBuilder};
 use langchain_rust::llm::client::Ollama;
 use langchain_rust::prompt::HumanMessagePromptTemplate;
 use langchain_rust::schemas::Message;
 use langchain_rust::{fmt_message, fmt_template, message_formatter, prompt_args, template_fstring};
+use log::LevelFilter;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 
+fn init_logger() {
+    let mut builder = Builder::from_default_env();
+    // Ignore the error if the logger is already initialized.
+    let _ = builder.filter(None, LevelFilter::Debug).try_init();
+}
+
 lazy_static::lazy_static! {
     static ref CHAIN: Arc<Mutex<dyn Chain>> = {
-        // let model_name = "mistral-nemo";
-        let model_name = "llama3.2";
+        let model_name = "mistral-nemo";
+        // let model_name = "llama3.2";
         let ollama = Ollama::default().with_model(model_name);
-        let prompt = message_formatter![
-            fmt_message!(Message::new_system_message(
-                "根据{sentence}的内容，将其翻译成{targetLanguage}。翻译过程要考虑文学修辞和意境表达，做到信达雅。
-                输出格式：
-                {targetLanguage}：{translation}"
-            )),
-            fmt_template!(HumanMessagePromptTemplate::new(template_fstring!(
-                "{sentence}",
-                "sentence"
-            ))),
-        ];
+    let prompt = message_formatter![
+        fmt_message!(Message::new_system_message("将句子从一种语言翻译为另一种语言。")),
+        fmt_template!(HumanMessagePromptTemplate::new(template_fstring!(
+            "将 {sentence} 从{slang}翻译成{tlang}","sentence",  "slang", "tlang"
+        ))),
+    ];
         let chain = LLMChainBuilder::new()
             .prompt(prompt)
             .llm(ollama.clone())
@@ -32,15 +35,15 @@ lazy_static::lazy_static! {
 }
 
 #[tauri::command]
-async fn translate(sentence: String, target_language: String) -> String {
+async fn translate(sentence: String, source_language: String, target_language: String) -> String {
+    init_logger();
     let chain = CHAIN.lock().await;
-    chain
-        .invoke(prompt_args! {
-            "sentence" => sentence,
-            "targetLanguage" => target_language
-        })
-        .await
-        .unwrap()
+    let input_variables = prompt_args! {
+        "sentence" => sentence,
+        "slang" => source_language,
+        "tlang" => target_language,
+    };
+    chain.invoke(input_variables).await.unwrap()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
