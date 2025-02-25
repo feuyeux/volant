@@ -72,7 +72,7 @@ flowchart LR
 
 "飞光飞光，劝尔一杯酒。吾不识青天高，黄地厚。"
 
-<img src="img/volant_screenshot_2025-02-22 213705.png" style="width:600px" />
+<img src="img/volant_screenshot 2025-02-26 014835.png" style="width:600px" />
 
 ## App develop
 

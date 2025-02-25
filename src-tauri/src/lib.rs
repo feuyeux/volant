@@ -20,7 +20,7 @@ lazy_static::lazy_static! {
         // let model_name = "llama3.2";
         let ollama = Ollama::default().with_model(model_name);
     let prompt = message_formatter![
-        fmt_message!(Message::new_system_message("将句子从一种语言翻译为另一种语言。")),
+        fmt_message!(Message::new_system_message("将句子从一种语言翻译为另一种语言。仅仅输出翻译后的句子，不输出其他内容。")),
         fmt_template!(HumanMessagePromptTemplate::new(template_fstring!(
             "将 {sentence} 从{slang}翻译成{tlang}","sentence",  "slang", "tlang"
         ))),
