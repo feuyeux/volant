@@ -13,14 +13,9 @@ lazy_static::lazy_static! {
         let ollama = Ollama::default().with_model(model_name);
         let prompt = message_formatter![
             fmt_message!(Message::new_system_message(
-                "根据{sentence}的内容，翻译成英语、法语、俄语、日语。翻译过程要考虑文学修辞和意境表达，做到信达雅。
-                输出语言名称和翻译结果。
-
+                "根据{sentence}的内容，将其翻译成{targetLanguage}语言。翻译过程要考虑文学修辞和意境表达，做到信达雅。
                 输出格式：
-                英语：{en}
-                法语：{fr}
-                俄语：{ru}
-                日语：{ja}"
+                {targetLanguage}：{translation}"
             )),
             fmt_template!(HumanMessagePromptTemplate::new(template_fstring!(
                 "{sentence}",
@@ -40,7 +35,10 @@ lazy_static::lazy_static! {
 async fn translate(sentence: String) -> String {
     let chain = CHAIN.lock().await;
     chain
-        .invoke(prompt_args! {"sentence" => sentence})
+        .invoke(prompt_args! {
+            "sentence" => sentence,
+            "targetLanguage" => targetLanguage
+        })
         .await
         .unwrap()
 }

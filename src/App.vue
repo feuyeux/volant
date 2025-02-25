@@ -5,6 +5,14 @@ import { invoke } from "@tauri-apps/api/core";
 const translateMsg = ref("");
 const sentence = ref("");
 const isTranslating = ref(false);
+const targetLanguage = ref("en");
+
+const languages = [
+  { value: "en", label: "English" },
+  { value: "ru", label: "Russian" },
+  { value: "fr", label: "French" },
+  // Add more languages as needed
+];
 
 async function translate() {
   if (!sentence.value.trim()) {
@@ -14,7 +22,10 @@ async function translate() {
 
   isTranslating.value = true;
   try {
-    const response = await invoke("translate", { sentence: sentence.value });
+    const response = await invoke("translate", {
+      sentence: sentence.value,
+      targetLanguage: targetLanguage.value
+    });
     translateMsg.value = typeof response === "string" ? response.replace(/\n/g, "<br/>") : "";
   } catch (error) {
     console.error("Translation failed:", error);
@@ -28,6 +39,11 @@ async function translate() {
   <main>
     <form class="translate-form row" @submit.prevent="translate">
       <input id="translate-input" v-model="sentence" placeholder="Enter sentence..." />
+      <select v-model="targetLanguage">
+        <option v-for="lang in languages" :key="lang.value" :value="lang.value">
+          {{ lang.label }}
+        </option>
+      </select>
       <button v-if="!isTranslating" type="submit">Translate</button>
       <span v-else>Translating...</span>
     </form>
