@@ -1,0 +1,355 @@
+/* Duolingo-inspired color scheme & styling */
+:root {
+    /* Primary colors */
+    --duo-green: #58cc02;
+    --duo-green-hover: #46a302;
+    --duo-green-disabled: #b5e085;
+    --duo-blue: #1cb0f6;
+    --duo-blue-hover: #0490d3;
+    --duo-red: #ff4b4b;
+    --duo-yellow: #ffc800;
+    --duo-purple: #ce82ff;
+
+    /* Neutral colors */
+    --duo-white: #fff;
+    --duo-off-white: #f7f7f7;
+    --duo-grey-100: #e5e5e5;
+    --duo-grey-200: #d1d1d1;
+    --duo-grey-300: #afafaf;
+    --duo-grey-400: #777;
+    --duo-grey-700: #4b4b4b;
+    --duo-grey-900: #3c3c3c;
+
+    /* UI attributes */
+    --border-radius-sm: 8px;
+    --border-radius-md: 12px;
+    --border-radius-lg: 16px;
+    --box-shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+    --box-shadow-md: 0 4px 8px rgba(0, 0, 0, 0.12);
+    --focus-ring: 0 0 0 2px rgba(28, 176, 246, 0.4);
+}
+
+/* Global styles */
+body {
+    background-color: #fff;
+    color: var(--duo-grey-900);
+    font-family: -apple-system, "Noto Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* App container */
+.translator-app {
+    max-width: 632px;
+    margin: 0 auto;
+    padding: 1.5rem 1rem 3rem;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+}
+
+/* App header */
+.app-header {
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.app-header h1 {
+    color: var(--duo-green);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Form styling */
+.translate-form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.text-input {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    border: 2px solid var(--duo-grey-100);
+    border-radius: var(--border-radius-md);
+    transition: all 0.2s ease;
+    resize: vertical;
+    min-height: 100px;
+    background-color: var(--duo-white);
+}
+
+.text-input:focus {
+    border-color: var(--duo-blue);
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.text-input::placeholder {
+    color: var(--duo-grey-300);
+}
+
+/* Language selector */
+.language-selector {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 12px;
+    align-items: center;
+    margin: 8px 0;
+}
+
+.dropdown-container {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.dropdown-container label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--duo-grey-400);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.dropdown-container select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 16px;
+    font-weight: 500;
+    border: 2px solid var(--duo-grey-100);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    background-color: var(--duo-white);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath fill='%23777' d='M4.94 5.72a.75.75 0 0 1 1.06 0L8 7.72l2-2a.75.75 0 1 1 1.06 1.06l-2.53 2.53a.75.75 0 0 1-1.06 0L4.94 6.78a.75.75 0 0 1 0-1.06z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    appearance: none;
+    transition: all 0.2s ease;
+}
+
+.dropdown-container select:focus {
+    border-color: var(--duo-blue);
+    outline: none;
+    box-shadow: var(--focus-ring);
+}
+
+.swap-button {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--duo-grey-100);
+    background-color: var(--duo-white);
+    color: var(--duo-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 20px;
+    padding: 0;
+}
+
+.swap-button:hover {
+    border-color: var(--duo-blue);
+    background-color: rgba(28, 176, 246, 0.1);
+}
+
+.swap-button:active {
+    transform: scale(0.92);
+}
+
+/* Translate button - Duolingo style */
+.translate-button {
+    background-color: var(--duo-green);
+    color: white;
+    font-size: 17px;
+    font-weight: 700;
+    padding: 14px 24px;
+    border: none;
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: filter 0.2s;
+    position: relative;
+    /* Duolingo 3D button effect */
+    box-shadow: 0 4px 0 var(--duo-green-hover);
+    top: 0;
+    margin-top: 8px;
+}
+
+.translate-button:hover {
+    filter: brightness(1.1);
+}
+
+.translate-button:active {
+    top: 2px;
+    box-shadow: 0 2px 0 var(--duo-green-hover);
+    filter: brightness(0.95);
+}
+
+.translate-button:disabled {
+    background-color: var(--duo-green-disabled);
+    box-shadow: 0 4px 0 rgba(70, 163, 2, 0.5);
+    cursor: not-allowed;
+    filter: none;
+}
+
+/* Loading indicator */
+.translating-indicator {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    min-height: 52px;
+    margin-top: 8px;
+    color: var(--duo-grey-400);
+    font-weight: 600;
+}
+
+.loading-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.loading-dots span {
+    width: 8px;
+    height: 8px;
+    background-color: var(--duo-green);
+    border-radius: 50%;
+    display: inline-block;
+    animation: dotPulse 1.4s infinite ease-in-out;
+}
+
+.loading-dots span:nth-child(1) {
+    animation-delay: 0s;
+}
+
+.loading-dots span:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.loading-dots span:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes dotPulse {
+
+    0%,
+    80%,
+    100% {
+        transform: scale(0.6);
+        opacity: 0.4;
+    }
+
+    40% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Result card */
+.result-card {
+    position: relative;
+    background-color: var(--duo-white);
+    border-radius: var(--border-radius-lg);
+    border: 2px solid var(--duo-grey-100);
+    padding: 20px;
+    box-shadow: var(--box-shadow-sm);
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    box-shadow: var(--box-shadow-md);
+    border-color: var(--duo-grey-200);
+}
+
+.translate-result {
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--duo-grey-900);
+    white-space: pre-wrap;
+    padding-right: 48px;
+    min-height: 80px;
+}
+
+/* RTL language support */
+.translate-result.rtl {
+    direction: rtl;
+    text-align: right;
+    padding-right: 0;
+    padding-left: 48px;
+}
+
+/* TTS button */
+.speak-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--duo-blue);
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.rtl+.speak-button {
+    right: auto;
+    left: 16px;
+}
+
+.speak-button:hover {
+    background-color: var(--duo-blue-hover);
+}
+
+.speak-button:active {
+    transform: scale(0.92);
+}
+
+.speak-button.speaking {
+    animation: speakPulse 2s infinite;
+}
+
+@keyframes speakPulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(28, 176, 246, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(28, 176, 246, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(28, 176, 246, 0);
+    }
+}
+
+/* Responsive design */
+@media (max-width: 600px) {
+    .language-selector {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto auto;
+    }
+
+    .swap-button {
+        margin: 0 auto;
+        transform: rotate(90deg);
+    }
+
+    .translate-button {
+        width: 100%;
+    }
+
+    .text-input {
+        font-size: 16px;
+    }
+
+    .translate-result {
+        font-size: 16px;
+    }
+}

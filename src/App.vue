@@ -1,65 +1,75 @@
 <script setup lang="ts">
-import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
-import { ref, onUnmounted } from "vue";
+import { ref, onUnmounted, computed } from "vue";
+import { translateText } from "./services/translateService";
+import { speakText, ensureVoicesLoaded } from "./services/speechService";
+import { Language } from "./types";
+import './assets/styles/main.css';
 
 const translateMsg = ref("");
 const sentence = ref("");
 const isTranslating = ref(false);
-const sourceLanguage = ref("中文"); // default source language
-const targetLanguage = ref("英语"); // default target language
+const sourceLanguage = ref("中文");
+const targetLanguage = ref("英语");
 const isStream = true;
+const isSpeaking = ref(false);
 
-const languages = [
-  { value: "中文", label: "Chinese" },
-  { value: "英语", label: "English" },
-  { value: "德语", label: "German" },
-  { value: "法语", label: "French" },
-  { value: "西班牙语", label: "Spanish" },
-  { value: "俄语", label: "Russian" },
-  { value: "希腊语", label: "Greek" },
-  { value: "阿拉伯语", label: "Arabic" },
-  { value: "希伯来语", label: "Hebrew" },
-  { value: "印地语", label: "Hindi" },
-  { value: "韩语", label: "Korean" },
-  { value: "日语", label: "Japanese" },
-  { value: "泰语", label: "Thai" },
+// Swap language function
+function swapLanguages() {
+  const temp = sourceLanguage.value;
+  sourceLanguage.value = targetLanguage.value;
+  targetLanguage.value = temp;
+}
+
+const languages: Language[] = [
+  { value: "中文", label: "Chinese", speechCode: "zh-CN" },
+  { value: "英语", label: "English", speechCode: "en-US" },
+  { value: "德语", label: "German", speechCode: "de-DE" },
+  { value: "法语", label: "French", speechCode: "fr-FR" },
+  { value: "西班牙语", label: "Spanish", speechCode: "es-ES" },
+  { value: "俄语", label: "Russian", speechCode: "ru-RU" },
+  { value: "希腊语", label: "Greek", speechCode: "el-GR" },
+  { value: "阿拉伯语", label: "Arabic", speechCode: "ar-SA" },
+  { value: "希伯来语", label: "Hebrew", speechCode: "he-IL" },
+  { value: "印地语", label: "Hindi", speechCode: "hi-IN" },
+  { value: "韩语", label: "Korean", speechCode: "ko-KR" },
+  { value: "日语", label: "Japanese", speechCode: "ja-JP" },
+  { value: "泰语", label: "Thai", speechCode: "th-TH" },
 ];
 
-let unsubscribeTranslation: (() => void) | null = null;
+// Determine if target language is RTL
+const isRtlLanguage = computed(() => {
+  const rtlCodes = ["ar-SA", "he-IL"];
+  const targetLang = languages.find(lang => lang.value === targetLanguage.value);
+  return rtlCodes.includes(targetLang?.speechCode || "");
+});
+
+let unsubscribeTranslation: (() => Promise<void>) | null = null;
 
 async function translate() {
-  if (!sentence.value.trim()) {
-    console.warn("Sentence is empty. Translation aborted.");
-    return;
-  }
-
+  if (!sentence.value.trim()) return;
+  
+  translateMsg.value = "";
   isTranslating.value = true;
+  
   try {
-    console.log("Translating... sentence:", sentence.value, "from:", sourceLanguage.value, "to:", targetLanguage.value);
-
-    if(isStream){
     if (unsubscribeTranslation) {
       await unsubscribeTranslation();
     }
     
-    unsubscribeTranslation = await listen('translation-chunk', (event: any) => {
-      translateMsg.value += event.payload;
-    });
-    await invoke("translate_stream", {
-      sentence: sentence.value,
-      sourceLanguage: sourceLanguage.value,
-      targetLanguage: targetLanguage.value
-    });
-    }else{
-    const response = await invoke("translate", {
-      sentence: sentence.value,
-      sourceLanguage: sourceLanguage.value,
-      targetLanguage: targetLanguage.value
-    });
-    translateMsg.value =
-      typeof response === "string" ? response.replace(/\n/g, "<br/>") : "";
+    const result = await translateText(
+      sentence.value,
+      sourceLanguage.value,
+      targetLanguage.value,
+      (chunk) => { translateMsg.value += chunk },
+      isStream
+    );
+    
+    if (!isStream && result.text) {
+      translateMsg.value = result.text;
     }
+    
+    unsubscribeTranslation = result.unsubscribe || null;
+    
   } catch (error) {
     console.error("Translation failed:", error);
   } finally {
@@ -67,25 +77,69 @@ async function translate() {
   }
 }
 
+async function initSpeak() {
+  await ensureVoicesLoaded();
+  
+  if (!translateMsg.value) return;
+  
+  const targetLang = languages.find(lang => lang.value === targetLanguage.value);
+  const langCode = targetLang?.speechCode || 'en-US';
+  
+  speakText(
+    translateMsg.value,
+    langCode,
+    () => { isSpeaking.value = true },
+    () => { isSpeaking.value = false },
+    () => { isSpeaking.value = false }
+  );
+}
+
+function stopSpeaking() {
+  window.speechSynthesis.cancel();
+  isSpeaking.value = false;
+}
+
 onUnmounted(async () => {
   if (unsubscribeTranslation) {
     await unsubscribeTranslation();
   }
+  window.speechSynthesis.cancel();
 });
 </script>
 
 <template>
-  <main>
+  <main class="translator-app">
+    <div class="app-header">
+      <h1>Volant</h1>
+    </div>
+    
     <form class="translate-form" @submit.prevent="translate">
-      <input id="translate-input" v-model="sentence" placeholder="Enter sentence..." />
+      <textarea
+        v-model="sentence"
+        class="text-input"
+        placeholder="Enter text to translate..."
+        autocomplete="off"
+        autocapitalize="sentences"
+        rows="3"
+      ></textarea>
 
-      <div class="dropdown-row">
+      <div class="language-selector">
         <div class="dropdown-container">
           <label for="sourceLanguage">FROM</label>
           <select id="sourceLanguage" v-model="sourceLanguage">
             <option v-for="lang in languages" :key="lang.value" :value="lang.value">{{ lang.label }}</option>
           </select>
         </div>
+
+        <button 
+          type="button" 
+          class="swap-button" 
+          @click="swapLanguages"
+          aria-label="Swap languages">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7 16L3 12M3 12L7 8M3 12H21M17 8L21 12M21 12L17 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
 
         <div class="dropdown-container">
           <label for="targetLanguage">TO</label>
@@ -95,123 +149,49 @@ onUnmounted(async () => {
         </div>
       </div>
 
-      <button v-if="!isTranslating" type="submit" class="translate-button">Translate</button>
-      <span v-else class="translating-text">Translating...</span>
+      <button 
+        v-if="!isTranslating" 
+        type="submit" 
+        class="translate-button"
+        :disabled="!sentence.trim()">
+        Translate
+      </button>
+      <div v-else class="translating-indicator">
+        <div class="loading-dots">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <span>Translating</span>
+      </div>
     </form>
-    <div class="translate-msg" v-html="translateMsg"></div>
+    
+    <div class="result-card" v-if="translateMsg">
+      <div 
+        class="translate-result" 
+        v-html="translateMsg"
+        :class="{ 'rtl': isRtlLanguage }"></div>
+      
+      <button 
+        v-if="!isSpeaking" 
+        @click="initSpeak" 
+        class="speak-button"
+        title="Read translation aloud">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M11 5L6 9H2v6h4l5 4V5z"></path>
+          <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+        </svg>
+      </button>
+      
+      <button 
+        v-if="isSpeaking" 
+        @click="stopSpeaking" 
+        class="speak-button speaking"
+        title="Stop reading">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="6" width="12" height="12"></rect>
+        </svg>
+      </button>
+    </div>
   </main>
 </template>
-<style scoped>
-main {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #a1e3a1, #d4f8d4);
-  font-family: 'Arial Rounded MT Bold', 'Helvetica Rounded', sans-serif;
-  padding: 2rem;
-  overflow: hidden;
-  box-sizing: border-box;
-  /* 确保padding不会导致溢出 */
-}
-
-.translate-form {
-  background-color: #fff;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  width: 100%;
-  max-width: 800px;
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  box-sizing: border-box;
-  /* 确保padding不会导致溢出 */
-}
-
-.translate-form input,
-.dropdown-container select {
-  width: 100%;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
-  font-size: 1.25rem;
-  font-family: 'Arial', 'Helvetica', 'sans-serif';
-  outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  box-sizing: border-box;
-  /* 确保padding不会导致溢出 */
-}
-
-#translate-input {
-  width: 100%;
-  margin: 0 auto;
-  box-sizing: border-box;
-  /* 确保padding不会导致溢出 */
-}
-
-.translate-form input:focus,
-.dropdown-container select:focus {
-  border-color: #7dc879;
-  box-shadow: 0 0 8px rgba(125, 200, 121, 0.5);
-}
-
-.dropdown-container {
-  display: flex;
-  flex-direction: column;
-}
-
-.dropdown-container label {
-  margin-bottom: 0.5rem;
-  font-size: 1rem;
-  color: #555;
-  font-weight: bold;
-}
-
-.translate-button {
-  background-color: #7dc879;
-  color: white;
-  padding: 0.75rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.translate-button:hover {
-  background-color: #66b764;
-  transform: translateY(-2px);
-}
-
-.translate-button:active {
-  background-color: #5aa653;
-  transform: translateY(0);
-}
-
-.translating-text {
-  font-size: 1.25rem;
-  color: #555;
-  text-align: center;
-}
-
-.translate-msg {
-  margin-top: 1.5rem;
-  padding: 1.5rem;
-  background-color: #f0fff0;
-  border-left: 6px solid #7dc879;
-  border-radius: 8px;
-  width: 100%;
-  max-width: 800px;
-  /* 调整最大宽度 */
-  font-size: 1.25rem;
-  font-family: 'Arial', 'Helvetica', 'sans-serif';
-  color: #333;
-  line-height: 1.6;
-  box-shadow: 0 2px 10px rgba(125, 200, 121, 0.3);
-  height: 30em;
-  overflow-y: auto;
-  box-sizing: border-box;
-  /* 确保padding不会导致溢出 */
-}
-</style>
