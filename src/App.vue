@@ -3,6 +3,7 @@ import { ref, onUnmounted, computed } from "vue";
 import { translateText } from "./services/translateService";
 import { speakText, ensureVoicesLoaded } from "./services/speechService";
 import { Language } from "./types";
+import { UnlistenFn } from "@tauri-apps/api/event";
 import './assets/styles/main.css';
 
 const translateMsg = ref("");
@@ -42,8 +43,7 @@ const isRtlLanguage = computed(() => {
   const targetLang = languages.find(lang => lang.value === targetLanguage.value);
   return rtlCodes.includes(targetLang?.speechCode || "");
 });
-
-let unsubscribeTranslation: (() => Promise<void>) | null = null;
+let unsubscribeTranslation: UnlistenFn | null = null;
 
 async function translate() {
   if (!sentence.value.trim()) return;

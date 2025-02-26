@@ -4,7 +4,7 @@
 
 A translate app using tauri and langchain.
 
-## App Mechanism
+## 1 App Mechanism
 
 **WRY** is a cross-platform WebView rendering library in Rust that supports all major desktop platforms like Windows, macOS, and Linux.
 
@@ -68,13 +68,13 @@ flowchart LR
 
 <img src="img/volant-diagram.drawio.svg" style="width:600px" />
 
-## App Demo
+## 2 App Demo
 
 "飞光飞光，劝尔一杯酒。吾不识青天高，黄地厚。"
 
 <img src="img/volant_screenshot 2025-02-26 014835.png" style="width:600px" />
 
-## App develop
+## 3 App Develop
 
 ```sh
 # npm install --global yarn
@@ -82,7 +82,7 @@ flowchart LR
 yarn tauri dev
 ```
 
-## App Created by `create-tauri-app`
+### App Created by `create-tauri-app`
 
 ```sh
 cargo create-tauri-app
@@ -92,4 +92,10 @@ cargo create-tauri-app
 ✔ Choose your package manager · yarn
 ✔ Choose your UI template · Vue - (https://vuejs.org/)
 ✔ Choose your UI flavor · TypeScript
+```
+
+## 4 App Distribute
+
+```sh
+yarn tauri build
 ```

@@ -86,6 +86,7 @@ async fn translate_stream(
 pub fn run() {
     init_logger();
     tauri::Builder::default()
+        .plugin(tauri_plugin_os::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![translate, translate_stream])
         .run(tauri::generate_context!())

@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
-import { listen } from "@tauri-apps/api/event";
+import { listen,UnlistenFn } from "@tauri-apps/api/event";
 
-type UnsubscribeFn = () => Promise<void>;
+type UnsubscribeFn = UnlistenFn;
 
 export async function translateText(
   sentence: string,

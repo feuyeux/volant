@@ -28,3 +28,4 @@ tokio = { version = "1", features = ["full"] }
 log = "0.4"
 env_logger = "0.11.6"
 futures = "0.3.31"
+tauri-plugin-os = "2"
