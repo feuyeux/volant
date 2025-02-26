@@ -1,12 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
+import { ref, onUnmounted } from "vue";
 
 const translateMsg = ref("");
 const sentence = ref("");
 const isTranslating = ref(false);
 const sourceLanguage = ref("中文"); // default source language
 const targetLanguage = ref("英语"); // default target language
+const isStream = true;
 
 const languages = [
   { value: "中文", label: "Chinese" },
@@ -24,6 +26,8 @@ const languages = [
   { value: "泰语", label: "Thai" },
 ];
 
+let unsubscribeTranslation: (() => void) | null = null;
+
 async function translate() {
   if (!sentence.value.trim()) {
     console.warn("Sentence is empty. Translation aborted.");
@@ -33,6 +37,21 @@ async function translate() {
   isTranslating.value = true;
   try {
     console.log("Translating... sentence:", sentence.value, "from:", sourceLanguage.value, "to:", targetLanguage.value);
+
+    if(isStream){
+    if (unsubscribeTranslation) {
+      await unsubscribeTranslation();
+    }
+    
+    unsubscribeTranslation = await listen('translation-chunk', (event: any) => {
+      translateMsg.value += event.payload;
+    });
+    await invoke("translate_stream", {
+      sentence: sentence.value,
+      sourceLanguage: sourceLanguage.value,
+      targetLanguage: targetLanguage.value
+    });
+    }else{
     const response = await invoke("translate", {
       sentence: sentence.value,
       sourceLanguage: sourceLanguage.value,
@@ -40,12 +59,19 @@ async function translate() {
     });
     translateMsg.value =
       typeof response === "string" ? response.replace(/\n/g, "<br/>") : "";
+    }
   } catch (error) {
     console.error("Translation failed:", error);
   } finally {
     isTranslating.value = false;
   }
 }
+
+onUnmounted(async () => {
+  if (unsubscribeTranslation) {
+    await unsubscribeTranslation();
+  }
+});
 </script>
 
 <template>
