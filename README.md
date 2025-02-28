@@ -72,7 +72,9 @@ flowchart LR
 
 "飞光飞光，劝尔一杯酒。吾不识青天高，黄地厚。"
 
-<img src="img/volant_screenshot 2025-02-26 014835.png" style="width:600px" />
+<img src="img/volant_screenshot 2025-02-28 081113.png" style="width:600px" />
+
+<img src="img/volant_hist_screenshot 2025-02-28 081059.png" style="width:600px" />
 
 ## 3 App Develop
 
@@ -97,5 +99,10 @@ cargo create-tauri-app
 ## 4 App Distribute
 
 ```sh
+# src-tauri/target/release/volant.exe
 yarn tauri build
+
+# android
+yarn tauri android init
+yarn tauri android build --apk
 ```

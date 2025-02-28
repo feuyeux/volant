@@ -78,7 +78,7 @@ async fn translate_stream(
             Err(e) => return Err(e.to_string()),
         }
     }
-
+    log::debug!("translate_stream done");
     Ok(())
 }
 
