@@ -26,6 +26,6 @@ langchain-rust = { version = "4.6.0", features = ["ollama"] }
 lazy_static = "1.4"
 tokio = { version = "1", features = ["full"] }
 log = "0.4"
-env_logger = "0.11.6"
+env_logger = "0.11.7"
 futures = "0.3.31"
 tauri-plugin-os = "2"
